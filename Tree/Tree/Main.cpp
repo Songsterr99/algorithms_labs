@@ -83,9 +83,15 @@ private:
 				return working;
 			}
 		}
-		return NULL;
+		return working;
 	}
-
+	void showNodes(ostream& fout, Item *node) {
+		if (node) {
+			fout << node->key << endl;
+			showNodes(fout, node->lSon);
+			showNodes(fout, node->rSon);
+		}
+	}
 	Item** searchRight(Item** specNode) {
 		Item** current = specNode;
 		while (*specNode) {
@@ -140,6 +146,41 @@ private:
 		Item** another = searchRight(&((*specNode)->rSon));
 		deletedNode = (*another)->key;
 	}
+	void deleteNode(int key) {
+		Item **working = find(key);
+		if (*working == NULL) {
+			cout << "!" << endl;
+			return;
+		}
+		if ((*working)->lSon == NULL && (*working)->rSon == NULL) {
+			*working = NULL;
+		}
+		else if ((*working)->lSon == NULL) {
+			*working = (*working)->rSon;
+		}
+		else if ((*working)->rSon == NULL) {
+			*working = (*working)->lSon;
+		}
+		else {
+			deleteComplicated(working);
+		}
+	}
+	void deleteComplicated(Item** working) {
+		Item **current = working,
+			*lSon = (*working)->lSon;
+		working = &(*working)->rSon;
+		if ((*working)->lSon == NULL) {
+			*current = *working;
+			(*current)->lSon = lSon;
+		}
+		else {
+			while ((*working)->lSon) {
+				working = &(*working)->lSon;
+			}
+			(*current)->key = (*working)->key;
+			*working = (*working)->rSon;
+		}
+	}
 public:
 	Tree() {
 		root = NULL;
@@ -171,9 +212,12 @@ public:
 		else {
 			turnRight(specNode);
 		}
+		deleteNode(deletedNode);
 	}
 	
-
+	void Show(ostream& fout) {
+		showNodes(fout, root);
+	}
 	int getKey() {
 		return deletedNode;
 	}
@@ -194,8 +238,8 @@ int main() {
 	fin.close();
 	workingTree.countHeights();
 	workingTree.findDeletedNode();
-	cout << workingTree.getKey() << endl;
 	ofstream fout("out.txt");
+	workingTree.Show(fout);
 	fout.close();
 	system("pause");
 	return 0;
